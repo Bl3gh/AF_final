@@ -1,24 +1,39 @@
+# app/schemas.py
+
 from pydantic import BaseModel, EmailStr, constr, validator
 from typing import Optional, List
 from datetime import datetime
 
-# Список разрешённых жанров (можете изменить)
 ALLOWED_GENRES = [
     "Fiction", "Non-Fiction", "Mystery", "Romance", "Science Fiction",
     "Fantasy", "Horror", "Biography", "History", "Poetry", "Adventure",
     "Thriller", "Self-Help"
 ]
 
+# ---------------------------
 # Схемы для книг
-
+# ---------------------------
 class BookCreate(BaseModel):
     title: str
     authors: str
     description: Optional[str] = None
-    genre: constr(strip_whitespace=True)
+    genres: List[str]
 
-    @validator("genre")
-    def validate_genre(cls, v):
+    @validator("genres", pre=True)
+    def split_genres(cls, v):
+        # Если значение уже список...
+        if isinstance(v, list):
+            # Если список состоит из одного элемента, содержащего запятую, разбиваем его
+            if len(v) == 1 and isinstance(v[0], str) and "," in v[0]:
+                return [item.strip() for item in v[0].split(",") if item.strip()]
+            return v
+        # Если значение строка, разбиваем по запятым
+        if isinstance(v, str):
+            return [item.strip() for item in v.split(",") if item.strip()]
+        return v
+
+    @validator("genres", each_item=True)
+    def validate_genres(cls, v):
         if v not in ALLOWED_GENRES:
             raise ValueError(f"Genre must be one of {ALLOWED_GENRES}")
         return v
@@ -27,11 +42,23 @@ class BookUpdate(BaseModel):
     title: Optional[str] = None
     authors: Optional[str] = None
     description: Optional[str] = None
-    genre: Optional[constr(strip_whitespace=True)] = None
+    genres: Optional[List[str]] = None
 
-    @validator("genre")
-    def validate_genre(cls, v):
-        if v is not None and v not in ALLOWED_GENRES:
+    @validator("genres", pre=True, always=True)
+    def split_genres(cls, v):
+        if v is None:
+            return v
+        if isinstance(v, list):
+            if len(v) == 1 and isinstance(v[0], str) and "," in v[0]:
+                return [item.strip() for item in v[0].split(",") if item.strip()]
+            return v
+        if isinstance(v, str):
+            return [item.strip() for item in v.split(",") if item.strip()]
+        return v
+
+    @validator("genres", each_item=True)
+    def validate_genres(cls, v):
+        if v not in ALLOWED_GENRES:
             raise ValueError(f"Genre must be one of {ALLOWED_GENRES}")
         return v
 
@@ -40,19 +67,20 @@ class BookOut(BaseModel):
     title: str
     authors: str
     description: Optional[str] = None
-    genre: str
+    genres: List[str]
     pdf_id: Optional[str] = None
-    created_at: datetime  # Изменено с str на datetime
+    created_at: datetime
 
     class Config:
-        orm_mode = True
+        orm_mode = True  # Если вы используете Pydantic V2, можно заменить на from_attributes = True
 
+# ---------------------------
 # Схемы для пользователей
-
+# ---------------------------
 class UserCreate(BaseModel):
     email: EmailStr
     name: str
-    # Пользователь не вводит пароль – система генерирует код
+    # Если хотите, чтобы пользователь вводил пароль, добавьте поле password
 
 class UserOut(BaseModel):
     id: int
@@ -67,7 +95,7 @@ class UserOut(BaseModel):
 
 class UserLogin(BaseModel):
     email: EmailStr
-    code: str  # используем код, который был отправлен на почту
+    password: str  # Или, если вход через код, переименуйте это поле в code
 
 class Token(BaseModel):
     access_token: str
