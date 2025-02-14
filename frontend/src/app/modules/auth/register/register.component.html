@@ -1,0 +1,29 @@
+<mat-card>
+    <mat-card-title>Регистрация</mat-card-title>
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" type="email">
+        <mat-error *ngIf="registerForm.get('email')?.hasError('required')">
+          Обязательное поле
+        </mat-error>
+        <mat-error *ngIf="registerForm.get('email')?.hasError('email')">
+          Неверный формат email
+        </mat-error>
+      </mat-form-field>
+  
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Имя</mat-label>
+        <input matInput formControlName="name">
+        <mat-error *ngIf="registerForm.get('name')?.hasError('required')">
+          Обязательное поле
+        </mat-error>
+      </mat-form-field>
+  
+      <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+      <div *ngIf="successMessage" class="success">{{ successMessage }}</div>
+      
+      <button mat-raised-button color="primary" type="submit">Зарегистрироваться</button>
+    </form>
+  </mat-card>
+  

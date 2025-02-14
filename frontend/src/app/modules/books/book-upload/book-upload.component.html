@@ -1,0 +1,56 @@
+<mat-card>
+  <mat-card-title>Загрузить книгу</mat-card-title>
+  <form [formGroup]="uploadForm" (ngSubmit)="onSubmit()">
+    <!-- Название книги -->
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Название книги</mat-label>
+      <input matInput formControlName="title" placeholder="Введите название">
+      <mat-error *ngIf="uploadForm.get('title')?.hasError('required')">
+        Обязательное поле
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Динамический список авторов -->
+    <div formArrayName="authors">
+      <div *ngFor="let authorControl of authors.controls; let i = index">
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>Автор {{ i + 1 }}</mat-label>
+          <input matInput [formControlName]="i" placeholder="Введите имя автора">
+          <mat-error *ngIf="authorControl.hasError('required')">
+            Обязательное поле
+          </mat-error>
+        </mat-form-field>
+        <button mat-button color="warn" type="button" (click)="removeAuthor(i)" [disabled]="authors.length === 1">
+          Удалить автора
+        </button>
+      </div>
+      <button mat-button type="button" (click)="addAuthor()">Добавить автора</button>
+    </div>
+
+    <!-- Описание книги -->
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Описание книги</mat-label>
+      <textarea matInput formControlName="description" placeholder="Краткое описание"></textarea>
+    </mat-form-field>
+
+    <!-- Жанры (множественный выбор) -->
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Жанры</mat-label>
+      <mat-select formControlName="genres" multiple>
+        <mat-option *ngFor="let genre of genres" [value]="genre">
+          {{ genre }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="uploadForm.get('genres')?.hasError('required')">
+        Обязательное поле
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Выбор PDF-файла -->
+    <div>
+      <input type="file" (change)="onFileChange($event)" accept="application/pdf">
+    </div>
+
+    <button mat-raised-button color="primary" type="submit">Загрузить книгу</button>
+  </form>
+</mat-card>

@@ -1,0 +1,59 @@
+<mat-card>
+    <mat-card-title>Управление пользователями</mat-card-title>
+    <div class="table-container" *ngIf="users && users.length">
+      <table mat-table [dataSource]="users" class="mat-elevation-z8">
+        <!-- ID -->
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef> ID </th>
+          <td mat-cell *matCellDef="let user"> {{ user.id }} </td>
+        </ng-container>
+  
+        <!-- Email -->
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef> Email </th>
+          <td mat-cell *matCellDef="let user"> {{ user.email }} </td>
+        </ng-container>
+  
+        <!-- Имя -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef> Имя </th>
+          <td mat-cell *matCellDef="let user"> {{ user.name }} </td>
+        </ng-container>
+  
+        <!-- Роль -->
+        <ng-container matColumnDef="role">
+          <th mat-header-cell *matHeaderCellDef> Роль </th>
+          <td mat-cell *matCellDef="let user"> {{ user.role }} </td>
+        </ng-container>
+  
+        <!-- Дата регистрации -->
+        <ng-container matColumnDef="registration_date">
+          <th mat-header-cell *matHeaderCellDef> Дата регистрации </th>
+          <td mat-cell *matCellDef="let user">
+            {{ user.registration_date | date: 'short' }}
+          </td>
+        </ng-container>
+  
+        <!-- Действия -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef> Действия </th>
+          <td mat-cell *matCellDef="let user">
+            <button mat-button color="primary" (click)="viewFavorites(user)">
+              Избранное
+            </button>
+            <button mat-button color="warn" (click)="deleteUser(user)">
+              Удалить
+            </button>
+          </td>
+        </ng-container>
+  
+        <!-- Заголовки и строки таблицы -->
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </div>
+    <div *ngIf="users.length === 0" class="no-data">
+      Нет пользователей для отображения.
+    </div>
+  </mat-card>
+  

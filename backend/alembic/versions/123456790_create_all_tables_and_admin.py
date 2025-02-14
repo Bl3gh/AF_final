@@ -56,7 +56,7 @@ def upgrade():
 
     # Генерация и вставка учётной записи администратора.
     # Сначала сгенерируйте реальный хэш для пароля "admin123" с помощью passlib.
-    admin_hashed_password = "$2b$12$1.jzXI1sgP24O2G.YBsjke85nRUDhXVO2K.XVZQR7ZEYLRMjXhuZG"  # Замените на реальный хэш
+    admin_hashed_password = "$2b$12$GZv.MCA2HAwg4c4k/Lxu8OHU8ueVwtc1z/NGBwXvYlwv5tyGHsaq6"  # Замените на реальный хэш
     stmt = sa.text("""
         INSERT INTO users (email, hashed_password, name, role, registration_date, is_verified)
         VALUES (:email, :hashed_password, :name, :role, NOW(), true)

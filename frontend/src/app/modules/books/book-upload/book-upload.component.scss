@@ -1,0 +1,89 @@
+.upload-card {
+  max-width: 650px;
+  margin: 3rem auto;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+}
+
+.card-title {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.authors-container {
+  margin-bottom: 1.5rem;
+}
+
+.author-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 0.8rem;
+}
+
+.author-field {
+  flex: 1;
+}
+
+.add-author-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.file-upload {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 1rem 0;
+  padding: 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #f8f8f8;
+}
+
+.file-label {
+  cursor: pointer;
+  padding: 10px 15px;
+  background: #007bff;
+  color: white;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: background 0.3s ease;
+}
+
+.file-label:hover {
+  background: #0056b3;
+}
+
+.file-name {
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.button-container {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.submit-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  padding: 0.8rem 1.2rem;
+  width: 100%;
+  justify-content: center;
+}

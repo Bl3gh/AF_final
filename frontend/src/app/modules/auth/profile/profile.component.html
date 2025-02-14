@@ -1,0 +1,33 @@
+<mat-card>
+    <mat-card-title>Мой профиль</mat-card-title>
+    <form [formGroup]="profileForm" (ngSubmit)="onUpdateProfile()">
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Имя</mat-label>
+        <input matInput formControlName="name">
+        <mat-error *ngIf="profileForm.get('name')?.hasError('required')">
+          Обязательное поле
+        </mat-error>
+      </mat-form-field>
+  
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Новый пароль</mat-label>
+        <input matInput formControlName="new_password" type="password">
+      </mat-form-field>
+  
+      <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+      <div *ngIf="successMessage" class="success">{{ successMessage }}</div>
+  
+      <button mat-raised-button color="primary" type="submit">Обновить профиль</button>
+      <button mat-button color="accent" type="button" (click)="onResetPassword()">Сброс пароля</button>
+    </form>
+  </mat-card>
+  
+  <mat-card>
+    <mat-card-title>Избранное</mat-card-title>
+    <mat-list>
+      <mat-list-item *ngFor="let book of favorites">
+        {{ book.title }} — {{ book.authors }}
+      </mat-list-item>
+    </mat-list>
+  </mat-card>
+  

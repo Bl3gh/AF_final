@@ -71,8 +71,15 @@ class BookOut(BaseModel):
     pdf_id: Optional[str] = None
     created_at: datetime
 
+    @validator("genres", pre=True)
+    def split_genres(cls, v: any) -> List[str]:
+        if isinstance(v, str):
+            cleaned = v.strip('{}')
+            return [s.strip() for s in cleaned.split(',') if s.strip()]
+        return v
+
     class Config:
-        orm_mode = True  # Если вы используете Pydantic V2, можно заменить на from_attributes = True
+        orm_mode = True # можно заменить на from_attributes = True
 
 # ---------------------------
 # Схемы для пользователей

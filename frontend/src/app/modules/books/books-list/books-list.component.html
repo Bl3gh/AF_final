@@ -1,0 +1,26 @@
+<!-- Индикатор загрузки -->
+<div *ngIf="books$ === undefined" class="loading-message">
+  🔄 Загрузка книг...
+</div>
+
+<!-- Сообщение, если книг нет -->
+<div *ngIf="(books$ | async) as books; else loading">
+  <div *ngIf="books.length === 0" class="empty-message">
+    📭 Пока нет книг. Добавьте первую!
+  </div>
+
+  <!-- Список книг -->
+  <div *ngIf="books.length > 0" class="books-container" fxLayout="row wrap" fxLayoutGap="1rem">
+    <mat-card *ngFor="let book of books" class="book-card" fxFlex="25" (click)="goToDetail(book.id)">
+      <mat-card-title>{{ book.title }}</mat-card-title>
+      <mat-card-content>
+        <p>{{ book.authors }}</p>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+
+<!-- Шаблон загрузки (если `books$` undefined) -->
+<ng-template #loading>
+  <div class="loading-message">🔄 Загрузка книг...</div>
+</ng-template>

@@ -1,0 +1,9 @@
+<mat-card>
+  <mat-card-title>Управление книгами</mat-card-title>
+  <mat-list>
+    <mat-list-item *ngFor="let book of books">
+      {{ book.title }} — {{ book.authors }}
+      <button mat-button color="warn" (click)="deleteBook(book.id)">Удалить</button>
+    </mat-list-item>
+  </mat-list>
+</mat-card>

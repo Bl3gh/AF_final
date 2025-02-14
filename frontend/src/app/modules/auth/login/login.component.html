@@ -1,0 +1,27 @@
+<mat-card>
+    <mat-card-title>Вход в систему</mat-card-title>
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" type="email">
+        <mat-error *ngIf="loginForm.get('email')?.hasError('email')">
+          Неверный формат email
+        </mat-error>
+      </mat-form-field>
+  
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Код верификации</mat-label>
+        <input matInput formControlName="code">
+        <mat-error *ngIf="loginForm.get('code')?.hasError('required')">
+          Обязательное поле
+        </mat-error>
+      </mat-form-field>
+  
+      <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+  
+      <button mat-raised-button color="primary" type="submit">
+        Войти
+      </button>
+    </form>
+  </mat-card>
+  

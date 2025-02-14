@@ -1,0 +1,29 @@
+<mat-card>
+    <mat-card-title>Верификация аккаунта</mat-card-title>
+    <form [formGroup]="verifyForm" (ngSubmit)="onSubmit()">
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" type="email">
+        <mat-error *ngIf="verifyForm.get('email')?.hasError('required')">
+          Обязательное поле
+        </mat-error>
+        <mat-error *ngIf="verifyForm.get('email')?.hasError('email')">
+          Неверный формат email
+        </mat-error>
+      </mat-form-field>
+  
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Код верификации</mat-label>
+        <input matInput formControlName="code">
+        <mat-error *ngIf="verifyForm.get('code')?.hasError('required')">
+          Обязательное поле
+        </mat-error>
+      </mat-form-field>
+  
+      <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+      <div *ngIf="successMessage" class="success">{{ successMessage }}</div>
+  
+      <button mat-raised-button color="primary" type="submit">Верифицировать</button>
+    </form>
+  </mat-card>
+  

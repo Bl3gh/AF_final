@@ -17,26 +17,37 @@ router = APIRouter()
 # 1. Создание книги
 # -------------------------------
 @router.post("/", response_model=BookOut)
-async def create_book(
-    book_data: BookCreate = Depends(),  # Ожидается JSON: title, authors, description, genres (массив или строка, преобразуемая в массив)
-    pdf_file: UploadFile = File(...)
-):
-    pdf_id = await save_pdf(pdf_file)
+async def create_book(book_data: BookCreate):
     query = (
         insert(books)
         .values(
             title=book_data.title,
             authors=book_data.authors,
             description=book_data.description,
-            # Приводим genres к типу ARRAY
-            genres=cast(book_data.genres, postgresql.ARRAY(String)),
-            pdf_id=pdf_id
+            genres=cast(book_data.genres, postgresql.ARRAY(String))
         )
         .returning(books.c.id)
     )
     book_id = await database.execute(query)
     row = await database.fetch_one(select(books).where(books.c.id == book_id))
     return BookOut(**dict(row))
+
+# 🟢 2️⃣ Отдельная загрузка PDF
+@router.post("/{book_id}/upload_pdf")
+async def upload_pdf(book_id: int, pdf_file: UploadFile = File(...)):
+    row = await database.fetch_one(select(books).where(books.c.id == book_id))
+    if not row:
+        raise HTTPException(status_code=404, detail="Book not found")
+
+    pdf_id = await save_pdf(pdf_file)
+    query = (
+        books.update()
+        .where(books.c.id == book_id)
+        .values(pdf_id=pdf_id)
+    )
+    await database.execute(query)
+
+    return {"message": "PDF uploaded successfully", "pdf_id": pdf_id}
 
 
 # -------------------------------

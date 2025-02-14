@@ -1,0 +1,31 @@
+<mat-card>
+    <mat-card-title>Поиск книг</mat-card-title>
+    <form [formGroup]="searchForm" (ngSubmit)="onSearch()">
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Ключевое слово</mat-label>
+        <input matInput formControlName="keyword">
+      </mat-form-field>
+  
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Категория</mat-label>
+        <input matInput formControlName="category">
+      </mat-form-field>
+  
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Автор</mat-label>
+        <input matInput formControlName="author">
+      </mat-form-field>
+  
+      <button mat-raised-button color="primary" type="submit">Искать</button>
+    </form>
+  
+    <div *ngIf="results.length">
+      <h3>Результаты поиска:</h3>
+      <mat-list>
+        <mat-list-item *ngFor="let book of results">
+          {{ book.title }} — {{ book.authors }}
+        </mat-list-item>
+      </mat-list>
+    </div>
+  </mat-card>
+  
