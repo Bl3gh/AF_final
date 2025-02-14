@@ -60,7 +60,9 @@ For more information on using the Angular CLI, including detailed command refere
 
 
 для проверки Сервер воркера
+npm install
 ng build --configuration production
+ng serve
 
 
 npm install -g http-server
