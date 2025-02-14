@@ -32,32 +32,48 @@ export class SearchComponent implements OnInit {
     });
   
     this.searchForm.valueChanges
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
-        switchMap(formValue => {
-          const { keyword, category, author } = formValue;
-          // Если все поля пустые, возвращаем пустой массив
-          if (!keyword.trim() && !category.trim() && !author.trim()) {
-            return of([]);
-          }
-          // Вызываем поиск даже если keyword пустое, но задан жанр или автор
-          return this.bookService.searchBooks(keyword, category, author);
-        })
-      )
-      .subscribe(results => {
-        const selectedCategory = this.searchForm.get('category')?.value;
-        if (selectedCategory && selectedCategory.trim() !== '') {
-          // Фильтрация по genres (если genres — массив)
-          this.searchResults = results.filter(book =>
-            book.genres &&
-            book.genres.some((g: string) => g.toLowerCase() === selectedCategory.toLowerCase())
-          );
-        } else {
-          this.searchResults = results;
-        }
-        console.log('Результаты поиска после фильтрации:', this.searchResults);
-      });
+  .pipe(
+    debounceTime(300),
+    distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
+    switchMap(formValue => {
+      const { keyword, category, author } = formValue;
+      // Если все поля пустые, возвращаем пустой массив
+      if (!keyword.trim() && !category.trim() && !author.trim()) {
+        return of([]);
+      }
+      return this.bookService.searchBooks(keyword, category, author);
+    })
+  )
+  .subscribe(results => {
+    const formValue = this.searchForm.value;
+    const selectedGenre = formValue.category; // выбранный жанр
+    const authorFilter = formValue.author ? formValue.author.trim().toLowerCase() : '';
+
+    // Фильтруем результаты по жанру и автору
+    this.searchResults = results.filter(book => {
+      let matchesGenre = true;
+      let matchesAuthor = true;
+
+      // Фильтрация по жанрам, если жанр выбран
+      if (selectedGenre && selectedGenre.trim() !== '') {
+        matchesGenre =
+          book.genres &&
+          book.genres.some((g: string) => g.toLowerCase() === selectedGenre.toLowerCase());
+      }
+
+      // Фильтрация по авторам, если поле автора заполнено
+      if (authorFilter) {
+        // Здесь предполагаем, что book.authors — строка, содержащая имя автора или список авторов
+        matchesAuthor =
+          book.authors &&
+          book.authors.toLowerCase().includes(authorFilter);
+      }
+
+      return matchesGenre && matchesAuthor;
+    });
+
+    console.log('Результаты поиска после фильтрации:', this.searchResults);
+  });
   }
   
 
