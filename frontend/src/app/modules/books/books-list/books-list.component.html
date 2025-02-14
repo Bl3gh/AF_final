@@ -1,26 +1,47 @@
-<!-- Индикатор загрузки -->
-<div *ngIf="books$ === undefined" class="loading-message">
-  🔄 Загрузка книг...
-</div>
-
-<!-- Сообщение, если книг нет -->
-<div *ngIf="(books$ | async) as books; else loading">
-  <div *ngIf="books.length === 0" class="empty-message">
-    📭 Пока нет книг. Добавьте первую!
-  </div>
-
-  <!-- Список книг -->
-  <div *ngIf="books.length > 0" class="books-container" fxLayout="row wrap" fxLayoutGap="1rem">
-    <mat-card *ngFor="let book of books" class="book-card" fxFlex="25" (click)="goToDetail(book.id)">
-      <mat-card-title>{{ book.title }}</mat-card-title>
-      <mat-card-content>
-        <p>{{ book.authors }}</p>
-      </mat-card-content>
-    </mat-card>
-  </div>
-</div>
-
-<!-- Шаблон загрузки (если `books$` undefined) -->
-<ng-template #loading>
+<!-- Если данные ещё не загружены, показываем индикатор загрузки -->
+<ng-container *ngIf="!(books$ | async) as books; else loaded">
   <div class="loading-message">🔄 Загрузка книг...</div>
+</ng-container>
+
+<!-- Загруженные данные -->
+<ng-template #loaded>
+  <ng-container *ngIf="(books$ | async) as books">
+    <!-- Если книг нет -->
+    <div *ngIf="books.length === 0" class="empty-message">
+      📭 Пока нет книг. Добавьте первую!
+    </div>
+
+    <!-- Список книг -->
+    <div *ngIf="books.length > 0" class="books-container" fxLayout="row wrap" fxLayoutGap="1rem" fxLayoutAlign="center start">
+      <mat-card class="book-card"
+                *ngFor="let book of books"
+                (click)="goToDetail(book.id)"
+                matRipple
+                matRippleColor="rgba(0,0,0,0.1)">
+        <mat-card-header>
+          <div mat-card-avatar class="book-avatar">
+            <!-- Аватар-смайлик книги -->
+            <span class="book-emoji" aria-hidden="true">📚</span>
+          </div>
+          <mat-card-title class="book-title">{{ book.title }}</mat-card-title>
+          <mat-card-subtitle class="book-authors">{{ book.authors }}</mat-card-subtitle>
+        </mat-card-header>
+
+        <!-- Вместо обложки выводим смайлик-обложку -->
+        <div class="book-cover-emoji">
+          <span class="cover-emoji" aria-hidden="true">📖</span>
+        </div>
+
+        <mat-card-content>
+          <p class="book-description">
+            {{ book.description | slice:0:100 }}<span *ngIf="book.description?.length > 100">...</span>
+          </p>
+        </mat-card-content>
+
+        <mat-card-actions align="end">
+          <button mat-button color="primary" (click)="goToDetail(book.id); $event.stopPropagation()">Подробнее</button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </ng-container>
 </ng-template>

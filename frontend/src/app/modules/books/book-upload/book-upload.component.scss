@@ -87,3 +87,25 @@
   width: 100%;
   justify-content: center;
 }
+
+:host {
+  display: block;
+  padding: 1rem;
+}
+
+mat-card {
+  padding: 1.5rem;
+  /* Можно задать минимальную высоту, если нужно */
+  min-height: 400px;
+}
+
+.dialog-container {
+  max-height: 80vh; /* 80% от высоты окна просмотра */
+  overflow-y: auto;
+  padding-right: 1rem; /* для отступа справа, чтобы не перекрывалась полоса прокрутки */
+}
+
+.full-width {
+  width: 100%;
+}
+

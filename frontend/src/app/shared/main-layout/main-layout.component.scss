@@ -1,0 +1,56 @@
+.toolbar {
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    background-color: #3f51b5; /* тёмный синий фон */
+  }
+  
+  .menu-btn {
+    display: none;
+    margin-right: 0.5rem;
+  }
+  
+  .app-title {
+    font-size: 1.8rem;
+    font-weight: bold;
+    letter-spacing: 0.05em;
+    color: #fff; /* белый заголовок */
+  }
+  
+  .spacer {
+    flex: 1 1 auto;
+  }
+  
+  /* Стили для навигационных ссылок */
+  .nav-links a {
+    margin: 0 0.5rem;
+    font-size: 1.1rem;
+    text-decoration: none;
+    color: #fff;  /* белый текст */
+    font-weight: 500;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    border-radius: 4px;
+    padding: 6px 12px;
+  }
+  
+  .nav-links a:hover,
+  .nav-links a.active-link {
+    background-color: rgba(255, 255, 255, 0.3);
+    color: #fff;
+  }
+  
+  /* Адаптивность для мобильных устройств */
+  @media (max-width: 768px) {
+    .menu-btn {
+      display: inline-flex;
+    }
+    
+    .nav-links {
+      display: none; // Здесь можно реализовать мобильное меню
+    }
+  }
+  
+  .content {
+    padding: 1rem;
+  }
+  

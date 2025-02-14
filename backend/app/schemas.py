@@ -73,8 +73,19 @@ class BookOut(BaseModel):
 
     @validator("genres", pre=True)
     def split_genres(cls, v: any) -> List[str]:
+        # Если v - список и все элементы – однобуквенные строки,
+        # то, скорее всего, он пришёл как список отдельных символов.
+        if isinstance(v, list):
+            if all(isinstance(item, str) and len(item) == 1 for item in v):
+                # Собираем строку и разбиваем её по запятым
+                v = "".join(v)
+            else:
+                # Если список уже корректный – возвращаем его как есть
+                return v
         if isinstance(v, str):
+            # Убираем фигурные скобки, если они есть
             cleaned = v.strip('{}')
+            # Разбиваем строку по запятым и удаляем лишние пробелы
             return [s.strip() for s in cleaned.split(',') if s.strip()]
         return v
 

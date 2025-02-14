@@ -1,0 +1,43 @@
+.statistics-card {
+    margin: 1rem;
+    padding: 1rem;
+  }
+  
+  .charts-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+  }
+  
+  .chart-item {
+    flex: 1 1 300px;
+    margin: 1rem;
+    text-align: center;
+  }
+  
+  .chart {
+    width: 100%;
+    height: 300px;
+  }
+  
+  /* Дополнительное оформление для осей и линий */
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+  }
+  
+  .line {
+    fill: none;
+    stroke: #3f51b5;
+    stroke-width: 2;
+  }
+  
+  .bar {
+    transition: fill 0.3s ease;
+  }
+  .bar:hover {
+    fill: #d81b60;
+  }
+  

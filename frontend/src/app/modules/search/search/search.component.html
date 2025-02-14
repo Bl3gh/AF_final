@@ -1,31 +1,56 @@
 <mat-card>
-    <mat-card-title>Поиск книг</mat-card-title>
-    <form [formGroup]="searchForm" (ngSubmit)="onSearch()">
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Ключевое слово</mat-label>
-        <input matInput formControlName="keyword">
-      </mat-form-field>
-  
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Категория</mat-label>
-        <input matInput formControlName="category">
-      </mat-form-field>
-  
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Автор</mat-label>
-        <input matInput formControlName="author">
-      </mat-form-field>
-  
-      <button mat-raised-button color="primary" type="submit">Искать</button>
-    </form>
-  
-    <div *ngIf="results.length">
-      <h3>Результаты поиска:</h3>
-      <mat-list>
-        <mat-list-item *ngFor="let book of results">
-          {{ book.title }} — {{ book.authors }}
-        </mat-list-item>
-      </mat-list>
+  <mat-card-title>Поиск книг</mat-card-title>
+  <form [formGroup]="searchForm">
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Ключевое слово</mat-label>
+      <input matInput formControlName="keyword" placeholder="Введите ключевое слово">
+    </mat-form-field>
+
+    <!-- Выпадающий список для категории -->
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Категория</mat-label>
+      <mat-select formControlName="category">
+        <mat-option value="">Все</mat-option>
+        <mat-option *ngFor="let cat of categories" [value]="cat">
+          {{ cat }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Автор</mat-label>
+      <input matInput formControlName="author" placeholder="Введите автора">
+    </mat-form-field>
+  </form>
+</mat-card>
+
+<div *ngIf="searchResults && searchResults.length === 0" class="empty-message">
+  📭 Ничего не найдено.
+</div>
+
+<div *ngIf="searchResults && searchResults.length > 0" class="books-container" fxLayout="row wrap" fxLayoutGap="1rem" fxLayoutAlign="center start">
+  <mat-card class="book-card"
+            *ngFor="let book of searchResults"
+            (click)="goToDetail(book.id)"
+            matRipple
+            matRippleColor="rgba(0,0,0,0.1)">
+    <mat-card-header>
+      <div mat-card-avatar class="book-avatar">
+        <span class="book-emoji" aria-hidden="true">📚</span>
+      </div>
+      <mat-card-title class="book-title">{{ book.title }}</mat-card-title>
+      <mat-card-subtitle class="book-authors">{{ book.authors }}</mat-card-subtitle>
+    </mat-card-header>
+    <div class="book-cover-emoji">
+      <span class="cover-emoji" aria-hidden="true">📖</span>
     </div>
+    <mat-card-content>
+      <p class="book-description">
+        {{ book.description | slice:0:100 }}<span *ngIf="book.description?.length > 100">...</span>
+      </p>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <button mat-button color="primary" (click)="goToDetail(book.id); $event.stopPropagation()">Подробнее</button>
+    </mat-card-actions>
   </mat-card>
-  
+</div>

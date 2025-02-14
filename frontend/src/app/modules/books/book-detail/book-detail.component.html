@@ -1,12 +1,36 @@
-<mat-card *ngIf="book">
+<mat-card class="book-detail-card" fxLayout="column" fxLayoutGap="1rem">
+  <mat-card-header>
+    <div mat-card-avatar class="book-avatar">
+      <!-- Вместо изображения используем смайлик книги -->
+      <span class="book-emoji" aria-hidden="true">📚</span>
+    </div>
     <mat-card-title>{{ book.title }}</mat-card-title>
     <mat-card-subtitle>{{ book.authors }}</mat-card-subtitle>
-    <mat-card-content>
-      <p>{{ book.description }}</p>
-      <p><strong>Жанр:</strong> {{ book.genres }}</p>
-    </mat-card-content>
-    <mat-card-actions>
-      <button mat-raised-button color="primary" (click)="downloadPdf()">Скачать PDF</button>
-    </mat-card-actions>
-  </mat-card>
-  
+  </mat-card-header>
+
+  <img mat-card-image [src]="book.coverUrl || 'assets/default-cover.jpg'" alt="{{ book.title }}" class="book-cover">
+
+  <mat-card-content>
+    <p class="description">{{ book.description }}</p>
+
+    <!-- Вывод жанров -->
+    <div class="genres" *ngIf="book.genres && book.genres.length">
+      <mat-chip-set>
+        <mat-chip *ngFor="let genre of book.genres" color="primary" selected>
+          {{ genre }}
+        </mat-chip>
+      </mat-chip-set>
+    </div>
+
+    <p class="created-date">
+      Дата добавления: {{ book.created_at | date:'mediumDate' }}
+    </p>
+  </mat-card-content>
+
+  <mat-card-actions align="end">
+    <button mat-raised-button color="accent" (click)="downloadPdf()">
+      <mat-icon>download</mat-icon>
+      Скачать PDF
+    </button>
+  </mat-card-actions>
+</mat-card>

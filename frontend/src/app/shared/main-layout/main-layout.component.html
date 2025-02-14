@@ -1,0 +1,21 @@
+<mat-toolbar color="primary" class="toolbar">
+    <button mat-icon-button class="menu-btn" (click)="toggleMenu()">
+      <mat-icon>menu</mat-icon>
+    </button>
+  
+    <span class="app-title">Онлайн Библиотека</span>
+  
+    <span class="spacer"></span>
+  
+    <nav class="nav-links">
+      <a mat-button routerLink="/books" routerLinkActive="active-link">Книги</a>
+      <a mat-button routerLink="/search" routerLinkActive="active-link">Поиск</a>
+      <a mat-button routerLink="/statistics" routerLinkActive="active-link">Статистика</a>
+      <a mat-button routerLink="/auth/profile" routerLinkActive="active-link">Профиль</a>
+    </nav>
+  </mat-toolbar>
+  
+  <div class="content">
+    <router-outlet></router-outlet>
+  </div>
+  

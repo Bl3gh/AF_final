@@ -1,0 +1,88 @@
+<div class="combined-container" fxLayout="row" fxLayoutGap="1rem" fxFlexFill>
+    <!-- Левый блок: список книг -->
+    <div class="book-list" fxFlex="60">
+      <ng-container *ngIf="!(books$ | async) as books; else loaded">
+        <div class="loading-message">🔄 Загрузка книг...</div>
+      </ng-container>
+  
+      <ng-template #loaded>
+        <ng-container *ngIf="(books$ | async) as books">
+          <div *ngIf="books.length === 0" class="empty-message">
+            📭 Пока нет книг. Добавьте первую!
+          </div>
+  
+          <div *ngIf="books.length > 0" class="books-container" fxLayout="row wrap" fxLayoutGap="1rem" fxLayoutAlign="center start">
+            <mat-card class="book-card"
+                      *ngFor="let book of books"
+                      (click)="goToDetail(book.id)"
+                      matRipple
+                      matRippleColor="rgba(0,0,0,0.1)">
+              <mat-card-header>
+                <div mat-card-avatar class="book-avatar">
+                  <span class="book-emoji" aria-hidden="true">📚</span>
+                </div>
+                <mat-card-title class="book-title">{{ book.title }}</mat-card-title>
+                <mat-card-subtitle class="book-authors">{{ book.authors }}</mat-card-subtitle>
+              </mat-card-header>
+              <div class="book-cover-emoji">
+                <span class="cover-emoji" aria-hidden="true">📖</span>
+              </div>
+              <mat-card-content>
+                <p class="book-description">
+                  {{ book.description | slice:0:100 }}<span *ngIf="book.description?.length > 100">...</span>
+                </p>
+              </mat-card-content>
+              <mat-card-actions align="end">
+                <button mat-button color="primary" (click)="goToDetail(book.id); $event.stopPropagation()">Подробнее</button>
+              </mat-card-actions>
+            </mat-card>
+          </div>
+        </ng-container>
+      </ng-template>
+    </div>
+  
+    <!-- Правый блок: детали выбранной книги -->
+    <div class="book-detail-panel" fxFlex="40" *ngIf="selectedBook">
+      <mat-card class="book-detail-card" fxLayout="column" fxLayoutGap="1rem">
+        <mat-card-header>
+          <div mat-card-avatar class="book-avatar">
+            <span class="book-emoji" aria-hidden="true">📚</span>
+          </div>
+          <mat-card-title>{{ selectedBook.title }}</mat-card-title>
+          <mat-card-subtitle>{{ selectedBook.authors }}</mat-card-subtitle>
+        </mat-card-header>
+  
+        <img mat-card-image [src]="selectedBook.coverUrl || 'assets/default-cover.jpg'" alt="{{ selectedBook.title }}" class="book-cover">
+  
+        <mat-card-content>
+          <p class="description">{{ selectedBook.description }}</p>
+  
+          <div class="genres" *ngIf="selectedBook.genres && selectedBook.genres.length">
+            <mat-chip-set>
+              <mat-chip *ngFor="let genre of selectedBook.genres" color="primary" selected>
+                {{ genre }}
+              </mat-chip>
+            </mat-chip-set>
+          </div>
+  
+          <p class="created-date">
+            Дата добавления: {{ selectedBook.created_at | date:'mediumDate' }}
+          </p>
+        </mat-card-content>
+  
+        <mat-card-actions align="end">
+          <button mat-raised-button color="accent" (click)="downloadPdf(selectedBook.id)">
+            <mat-icon>download</mat-icon>
+            Скачать PDF
+          </button>
+          <button mat-button (click)="closeDetail()">Закрыть</button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+  
+  <!-- Плавающая кнопка для загрузки книги -->
+  <button mat-fab color="primary" class="upload-fab" (click)="openUploadDialog()">
+    <mat-icon>cloud_upload</mat-icon>
+  </button>
+  

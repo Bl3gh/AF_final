@@ -10,6 +10,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatListModule } from '@angular/material/list';
+import { MatSelectModule } from '@angular/material/select';
+
 
 
 @NgModule({
@@ -21,6 +23,7 @@ import { MatListModule } from '@angular/material/list';
     ReactiveFormsModule,
     SearchRoutingModule,
     MatCardModule,
+    MatSelectModule,
     MatFormFieldModule,
     MatInputModule,
     MatListModule,

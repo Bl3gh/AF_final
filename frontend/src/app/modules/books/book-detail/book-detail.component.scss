@@ -1,0 +1,54 @@
+.book-detail-card {
+    max-width: 800px;
+    margin: 2rem auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;
+  
+    &:hover {
+      transform: scale(1.02);
+    }
+  }
+  
+  .book-avatar {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px; /* размер смайлика */
+  }
+  
+  .book-cover {
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: 4px;
+    width: 100%;
+  }
+  
+  .description {
+    font-size: 16px;
+    line-height: 1.5;
+    margin-top: 1rem;
+  }
+  
+  .genres {
+    margin: 1rem 0;
+  }
+  
+  .created-date {
+    color: gray;
+    font-style: italic;
+    margin-top: 0.5rem;
+  }
+  
+  /* Адаптивность для мобильных устройств */
+  @media (max-width: 600px) {
+    .book-detail-card {
+      margin: 1rem;
+    }
+  
+    .book-cover {
+      max-height: 250px;
+    }
+  }
+  

@@ -1,6 +1,17 @@
-<mat-card>
-    <mat-card-title>Статистика по книгам</mat-card-title>
-    <div #chart></div>
-    <!-- Аналогичным образом можно добавить pie chart и cartogram -->
-  </mat-card>
-  
+<mat-card class="statistics-card">
+  <mat-card-title>Статистика по книгам</mat-card-title>
+  <div class="charts-container">
+    <div class="chart-item">
+      <h3>Динамика добавления книг (по месяцам)</h3>
+      <div #lineChart class="chart"></div>
+    </div>
+    <div class="chart-item">
+      <h3>Распределение по жанрам</h3>
+      <div #pieChart class="chart"></div>
+    </div>
+    <div class="chart-item">
+      <h3>Топ-авторы</h3>
+      <div #barChart class="chart"></div>
+    </div>
+  </div>
+</mat-card>

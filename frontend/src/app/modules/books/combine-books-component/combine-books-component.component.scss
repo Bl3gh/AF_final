@@ -1,13 +1,9 @@
-.full-width {
-    width: 100%;
-  }
-  
-  .books-container {
+.books-container {
     padding: 1rem;
   }
   
   .book-card {
-    width: 350px;
+    width: 350px;  // увеличиваем ширину карточки
     margin: 0.5rem;
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
@@ -52,6 +48,7 @@
     }
   }
   
+  /* Дополнительные стили для пустого состояния */
   .empty-message {
     text-align: center;
     font-size: 1.2rem;
@@ -59,3 +56,10 @@
     margin: 2rem;
   }
   
+
+  .upload-fab {
+    position: fixed;
+    top: 70px;
+    left: 16px;
+    z-index: 1000;
+  }
