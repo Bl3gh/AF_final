@@ -1,61 +1,76 @@
-from fastapi import APIRouter, HTTPException, Depends, Form
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy import select, update
-from passlib.context import CryptContext
-import jwt
 from datetime import datetime, timedelta
-import random
-import string
 from typing import Optional
 
+import jwt
+import random
+import string
+from fastapi import APIRouter, HTTPException, Depends, Form
+from fastapi.security import OAuth2PasswordRequestForm
+from passlib.context import CryptContext
+from sqlalchemy import select, update
+from fastapi import Body
+
 from app.database import database
-from app.models import users
-from app.schemas import UserCreate, UserOut, UserLogin, Token
+from app.models import users, favorites, books
+from app.schemas import UserCreate, UserOut, Token, UserProfile, BookOut
+from app.schemas import TokenPayload, UpdateProfileRequest  # Импортируем модель
 from app.mailer import send_verification_email
+from app.dependencies import get_current_user, get_is_admin   # Зависимость, которая декодирует токен
 
 router = APIRouter()
 
-# Остальной код...
-
-
+# ---- Конфигурация безопасности ----
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-SECRET_KEY = "gH1wR8k9lXP2gPqVuOOJxP2k7wwgU09wOxVO8KU9-NI"  # замените на ваш секретный ключ
+SECRET_KEY = "61T1OeneuKWiq20JrCp7DPt8WArl1ywtfxLdMFwiDc"  # Замените на более безопасное значение (или берите из окружения)
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-def create_verification_code(length=6):
+# ---- Вспомогательные функции ----
+
+def create_verification_code(length: int = 6) -> str:
+    """Генерирует случайный код (например, 6 цифр) для верификации."""
     return ''.join(random.choices(string.digits, k=length))
 
 def get_password_hash(password: str) -> str:
+    """Хэширует пароль с помощью bcrypt (passlib)."""
     return pwd_context.hash(password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Сравнивает обычный пароль с хэшированным."""
     return pwd_context.verify(plain_password, hashed_password)
 
-def create_access_token(data: dict, expires_delta: timedelta = None):
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """
+    Создаёт JWT-токен. 
+    Включаем 'sub' как user_id, а также любые другие поля (login, role).
+    """
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta if expires_delta else timedelta(minutes=15))
-    to_encode.update({"exp": expire})
+    expire = datetime.utcnow() + (expires_delta if expires_delta else timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({"exp": expire, "sub": str(data["user_id"])})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-# Регистрация (только email и name)
+# ---- Эндпоинты ----
+
 @router.post("/register", response_model=UserOut)
 async def register(user: UserCreate):
-    # Проверка, существует ли уже пользователь с таким email
+    """
+    Регистрация пользователя. Пользователь вводит email и имя.
+    Генерируется код (верификационный), сохраняется в hashed_password (пока), отправляется на email.
+    """
+    # Проверяем, есть ли уже пользователь с таким email
     query = select(users).where(users.c.email == user.email)
     existing = await database.fetch_one(query)
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Генерируем код для верификации
     verification_code = create_verification_code()
+    hashed_password = get_password_hash(verification_code)
     
-    # Сохраняем пользователя (пароль пока не задан, или можно сохранить его как хэш кода)
     query_insert = users.insert().values(
         email=user.email,
+        hashed_password=hashed_password,
         name=user.name,
-        hashed_password=get_password_hash(verification_code),  # задаем код как пароль (хэшируем его)
         role="Customer",
         registration_date=datetime.utcnow(),
         is_verified=False,
@@ -63,15 +78,17 @@ async def register(user: UserCreate):
     ).returning(users.c.id)
     user_id = await database.execute(query_insert)
     
-    # Отправляем код на почту
+    # Отправляем код по почте
     send_verification_email(user.email, verification_code)
     
     created_user = await database.fetch_one(select(users).where(users.c.id == user_id))
     return UserOut(**dict(created_user))
 
-# Верификация аккаунта (ввод кода, полученного на почту)
 @router.post("/verify", response_model=UserOut)
 async def verify_account(email: str = Form(...), code: str = Form(...)):
+    """
+    Верификация аккаунта (email + код). Если совпадает, is_verified=True.
+    """
     query = select(users).where(users.c.email == email)
     user = await database.fetch_one(query)
     if not user:
@@ -79,51 +96,60 @@ async def verify_account(email: str = Form(...), code: str = Form(...)):
     if user["verification_code"] != code:
         raise HTTPException(status_code=400, detail="Invalid verification code")
     
-    # Обновляем пользователя, устанавливаем is_verified=True и сбрасываем verification_code
     query_update = update(users).where(users.c.id == user["id"]).values(is_verified=True, verification_code=None)
     await database.execute(query_update)
     
     updated_user = await database.fetch_one(select(users).where(users.c.id == user["id"]))
     return UserOut(**dict(updated_user))
 
-# Логин (используем email и код, который был использован как пароль)
 @router.post("/login", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    # В нашем случае, вместо обычного поля password пользователь вводит код, который был отправлен
+    """
+    Логин через поля username (email) и password (верификационный код или новый пароль).
+    Возвращаем JWT-токен, содержащий user_id, login (email), role.
+    """
     query = select(users).where(users.c.email == form_data.username)
     user = await database.fetch_one(query)
-    if not user:
-        raise HTTPException(status_code=400, detail="Incorrect email or code")
-    if not verify_password(form_data.password, user["hashed_password"]):
+    if not user or not verify_password(form_data.password, user["hashed_password"]):
         raise HTTPException(status_code=400, detail="Incorrect email or code")
     if not user["is_verified"]:
-        raise HTTPException(status_code=400, detail="User is not verified")
+        raise HTTPException(status_code=400, detail="User not verified")
     
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user["email"], "id": user["id"]},
-        expires_delta=access_token_expires
-    )
+    token_data = {
+        "user_id": user["id"],
+        "login": user["email"],
+        "role": user["role"]
+    }
+    access_token = create_access_token(token_data)
     return Token(access_token=access_token, token_type="bearer")
 
-# Обновление профиля (смена имени и/или пароля)
 @router.put("/update_profile", response_model=UserOut)
-async def update_profile(
-    user_id: int = Form(...),
-    name: Optional[str] = Form(None),
-    new_password: Optional[str] = Form(None)
-):
-    # Получаем текущего пользователя
+async def update_profile(payload: UpdateProfileRequest = Body(...)):
+    """
+    Обновление профиля.
+    Запрос принимает тело с полями:
+      - token: строка JWT,
+      - name: новое имя (опционально),
+      - new_password: новый пароль (опционально).
+    Из токена извлекается user_id, и затем обновляются данные.
+    """
+    token = payload.token
+    try:
+        decoded = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = int(decoded.get("sub"))
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
     query = select(users).where(users.c.id == user_id)
     user = await database.fetch_one(query)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
     updated_data = {}
-    if name is not None and name.strip() != "":
-        updated_data["name"] = name
-    if new_password is not None and new_password.strip() != "":
-        updated_data["hashed_password"] = get_password_hash(new_password)
+    if payload.name is not None and payload.name.strip():
+        updated_data["name"] = payload.name
+    if payload.new_password is not None and payload.new_password.strip():
+        updated_data["hashed_password"] = get_password_hash(payload.new_password)
     
     if not updated_data:
         return UserOut(**dict(user))
@@ -133,3 +159,25 @@ async def update_profile(
     
     updated_user = await database.fetch_one(select(users).where(users.c.id == user_id))
     return UserOut(**dict(updated_user))
+
+@router.post("/profile", response_model=UserOut)
+async def get_profile(payload: TokenPayload):
+    token = payload.token
+    try:
+        decoded = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = int(decoded.get("sub"))
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    query = select(users).where(users.c.id == user_id)
+    user = await database.fetch_one(query)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return UserOut(**dict(user))
+
+@router.get("/admin-data")
+async def get_admin_data(is_admin: bool = Depends(get_is_admin)):
+    if not is_admin:
+        raise HTTPException(status_code=403, detail="Not enough privileges: Admins only")
+    return {"message": "This is admin-only data."}

@@ -4,6 +4,10 @@ from pydantic import BaseModel, EmailStr, constr, validator
 from typing import Optional, List
 from datetime import datetime
 
+class TokenPayload(BaseModel):
+    token: str
+
+
 ALLOWED_GENRES = [
     "Fiction", "Non-Fiction", "Mystery", "Romance", "Science Fiction",
     "Fantasy", "Horror", "Biography", "History", "Poetry", "Adventure",
@@ -118,3 +122,21 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+class UserProfile(BaseModel):
+    id: int
+    email: str
+    name: str
+    role: str
+    # Дополнительно, если нужно:
+    # registration_date: datetime
+    favorites: List["BookOut"]  # список книг
+
+    # Если используете Pydantic v2, замените orm_mode на from_attributes
+    class Config:
+        orm_mode = True
+
+class UpdateProfileRequest(BaseModel):
+    token: str
+    name: Optional[str] = None
+    new_password: Optional[str] = None

@@ -7,26 +7,27 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class FavoriteService {
-  private apiUrl = 'http://localhost:8000/favorites';
+  private apiUrl = 'http://127.0.0.1:8000/favorites';
 
   constructor(private http: HttpClient) {}
 
-  // Добавить книгу в избранное
-  addFavorite(user_id: number, book_id: number): Observable<any> {
-    const body = { user_id, book_id };
-    return this.http.post<any>(`${this.apiUrl}`, body);
+  // Добавить книгу в избранное; бэкенд определяет пользователя по токену
+  addFavorite(book_id: number): Observable<any> {
+    const token = localStorage.getItem('access_token');
+    return this.http.post<any>(`${this.apiUrl}/add`, { token, book_id });
   }
 
-  // Получить список избранных книг для пользователя
-  getFavorites(user_id: number): Observable<any[]> {
-    const params = new HttpParams().set('user_id', user_id.toString());
-    return this.http.get<any[]>(`${this.apiUrl}`, { params });
+  // Получить список избранных книг; бэкенд извлекает user_id из токена
+  getFavorites(): Observable<any[]> {
+    const token = localStorage.getItem('access_token');
+    return this.http.post<any[]>(`${this.apiUrl}/profile`, { token });
   }
 
-  // Удалить книгу из избранного
-  removeFavorite(user_id: number, book_id: number): Observable<any> {
-    let params = new HttpParams();
-    params = params.set('user_id', user_id.toString()).set('book_id', book_id.toString());
-    return this.http.delete<any>(`${this.apiUrl}`, { params });
+  // Удалить книгу из избранного; бэкенд использует токен для определения пользователя
+  removeFavorite(book_id: number): Observable<any> {
+    const token = localStorage.getItem('access_token');
+    // Если ваш бэкенд реализован как DELETE, то можно передать параметры как query,
+    // но лучше, если он принимает тело запроса.
+    return this.http.request<any>('delete', `${this.apiUrl}/remove`, { body: { token, book_id } });
   }
 }

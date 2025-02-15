@@ -29,12 +29,11 @@ export class RegisterComponent implements OnInit {
 
   onSubmit(): void {
     if (this.registerForm.invalid) return;
-
     this.authService.register(this.registerForm.value).subscribe({
       next: (res: any) => {
         this.successMessage = 'Регистрация успешна! Проверьте почту для получения кода верификации.';
-        // Переход на страницу верификации с передачей email через query-параметр
         setTimeout(() => {
+          // Переход на страницу верификации с передачей email через query-параметр
           this.router.navigate(['/auth/verify'], { queryParams: { email: this.registerForm.get('email')?.value } });
         }, 2000);
       },

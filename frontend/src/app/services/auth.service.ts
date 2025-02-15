@@ -1,55 +1,47 @@
 // src/app/services/auth.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
-
-interface User {
-  id: number;
-  email: string;
-  name: string;
-  role: string;
-  registration_date: string;
-}
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8000/auth';
+  private baseUrl = 'http://127.0.0.1:8000/auth';
 
   constructor(private http: HttpClient) {}
 
-  // Регистрация пользователя
-  register(userData: { email: string; name: string }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register`, userData);
+  register(data: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/register`, data);
   }
 
-  // Верификация аккаунта с помощью кода, отправленного на email
-  verify(email: string, code: string): Observable<any> {
-    const formData = new FormData();
-    formData.append('email', email);
-    formData.append('code', code);
-    return this.http.post(`${this.apiUrl}/verify`, formData);
+  verify(data: FormData): Observable<any> {
+    return this.http.post(`${this.baseUrl}/verify`, data);
   }
 
-  getCurrentUser(): Observable<User> {
-    return this.http.get<User>('http://localhost:8000/auth/me');
+  login(data: any): Observable<any> {
+    // Преобразуем данные в формат x-www-form-urlencoded
+    const body = new HttpParams()
+      .set('username', data.email)
+      .set('password', data.code);
+    return this.http.post(`${this.baseUrl}/login`, body.toString(), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    });
   }
 
-  // Вход в систему (используем email и код, как пароль)
-  login(credentials: { username: string; password: string }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/login`, credentials);
+  // Получение профиля с отправкой токена в теле запроса (POST /auth/profile)
+  getProfile(): Observable<any> {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      throw new Error('No token found');
+    }
+    return this.http.post(`${this.baseUrl}/profile`, { token });
   }
 
-  // Обновление профиля: смена имени и/или пароля
-  updateProfile(data: { user_id: string; name?: string; new_password?: string }): Observable<any> {
-    // Передаём данные как JSON
-    return this.http.put(`${this.apiUrl}/update_profile`, data);
-  }
-
-  // (Опционально) Проверка доступности email
-  checkEmail(email: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/check-email?email=${email}`);
+  // Обновление профиля с отправкой токена в теле запроса (PUT /auth/update_profile)
+  updateProfile(payload: any): Observable<any> {
+    const token = localStorage.getItem('access_token');
+    const data = { token, ...payload };
+    return this.http.put(`${this.baseUrl}/update_profile`, data);
   }
 }

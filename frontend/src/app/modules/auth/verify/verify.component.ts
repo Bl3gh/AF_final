@@ -22,7 +22,6 @@ export class VerifyComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Предзаполняем email, если он передан в query-параметрах
     const emailFromQuery = this.route.snapshot.queryParamMap.get('email');
     this.verifyForm = this.fb.group({
       email: [emailFromQuery || '', [Validators.required, Validators.email]],
@@ -37,7 +36,7 @@ export class VerifyComponent implements OnInit {
     formData.append('email', this.verifyForm.get('email')?.value);
     formData.append('code', this.verifyForm.get('code')?.value);
 
-    this.authService.verify(this.verifyForm.get('email')?.value, this.verifyForm.get('code')?.value).subscribe({
+    this.authService.verify(formData).subscribe({
       next: (res: any) => {
         this.successMessage = 'Верификация успешна! Теперь вы можете войти в систему.';
         setTimeout(() => {
