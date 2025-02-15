@@ -3,7 +3,7 @@ from fastapi.responses import StreamingResponse
 from typing import List, Optional
 import base64
 from io import BytesIO
-from sqlalchemy import insert, select, update, cast, String
+from sqlalchemy import insert, select, update, delete, cast, String
 from sqlalchemy.dialects import postgresql
 
 from app.database import database
@@ -32,7 +32,9 @@ async def create_book(book_data: BookCreate):
     row = await database.fetch_one(select(books).where(books.c.id == book_id))
     return BookOut(**dict(row))
 
-# 🟢 2️⃣ Отдельная загрузка PDF
+# -------------------------------
+# 2. Отдельная загрузка PDF
+# -------------------------------
 @router.post("/{book_id}/upload_pdf")
 async def upload_pdf(book_id: int, pdf_file: UploadFile = File(...)):
     row = await database.fetch_one(select(books).where(books.c.id == book_id))
@@ -49,11 +51,9 @@ async def upload_pdf(book_id: int, pdf_file: UploadFile = File(...)):
 
     return {"message": "PDF uploaded successfully", "pdf_id": pdf_id}
 
-
 # -------------------------------
-# 2. Поиск книг с фильтрами по названию, жанрам и авторам
+# 3. Поиск книг с фильтрами по названию, жанрам и авторам
 # -------------------------------
-
 @router.get("/search", response_model=List[BookOut])
 async def search_books(
     title: Optional[str] = Query(None),
@@ -72,7 +72,7 @@ async def search_books(
     return [BookOut(**dict(row)) for row in rows]
 
 # -------------------------------
-# 3. Получение списка всех книг
+# 4. Получение списка всех книг
 # -------------------------------
 @router.get("/", response_model=List[BookOut])
 async def list_books():
@@ -80,7 +80,7 @@ async def list_books():
     return [BookOut(**dict(row)) for row in rows]
 
 # -------------------------------
-# 4. Получение одной книги (метаданные)
+# 5. Получение одной книги (метаданные)
 # -------------------------------
 @router.get("/{book_id}", response_model=BookOut)
 async def get_book(book_id: int):
@@ -90,7 +90,7 @@ async def get_book(book_id: int):
     return BookOut(**dict(row))
 
 # -------------------------------
-# 5. Скачивание PDF-файла
+# 6. Скачивание PDF-файла
 # -------------------------------
 @router.get("/{book_id}/pdf")
 async def download_pdf(book_id: int):
@@ -109,7 +109,7 @@ async def download_pdf(book_id: int):
     )
 
 # -------------------------------
-# 6. Получение книги с PDF (Base64)
+# 7. Получение книги с PDF (Base64)
 # -------------------------------
 @router.get("/{book_id}/full")
 async def get_full_book(book_id: int):
@@ -135,7 +135,7 @@ async def get_full_book(book_id: int):
     }
 
 # -------------------------------
-# 7. Обновление книги (с поддержкой нескольких жанров)
+# 8. Обновление книги (с поддержкой нескольких жанров)
 # -------------------------------
 @router.put("/{book_id}", response_model=BookOut)
 async def update_book(
@@ -199,3 +199,22 @@ async def update_book(
     new_row = await database.fetch_one(query)
     return BookOut(**dict(new_row))
 
+# -------------------------------
+# 9. Удаление книги
+# -------------------------------
+@router.delete("/{book_id}", response_model=dict)
+async def delete_book(book_id: int):
+    row = await database.fetch_one(select(books).where(books.c.id == book_id))
+    if not row:
+        raise HTTPException(status_code=404, detail="Book not found")
+    
+    # Если книга имеет связанный PDF, удаляем его
+    pdf_id = dict(row).get("pdf_id")
+    if pdf_id:
+        try:
+            await delete_pdf(pdf_id)
+        except Exception:
+            pass
+
+    await database.execute(delete(books).where(books.c.id == book_id))
+    return {"message": "Book deleted successfully"}

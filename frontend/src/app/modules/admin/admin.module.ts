@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { AdminRoutingModule } from './admin-routing.module';
 import { AdminBooksComponent } from './admin-books/admin-books.component';
 import { AdminUsersComponent } from './admin-users/admin-users.component';
+import { AdminPanelComponent } from './admin-panel/admin-panel.component';
 
 // Импорт Angular Material модулей для красивого UI
 import { MatCardModule } from '@angular/material/card';
@@ -18,6 +19,7 @@ import { MatTableModule } from '@angular/material/table';
   declarations: [
     AdminBooksComponent,
     AdminUsersComponent,
+    AdminPanelComponent
   ],
   imports: [
     CommonModule,

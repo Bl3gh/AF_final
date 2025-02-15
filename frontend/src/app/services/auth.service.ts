@@ -44,4 +44,13 @@ export class AuthService {
     const data = { token, ...payload };
     return this.http.put(`${this.baseUrl}/update_profile`, data);
   }
+  
+  getAdminData(): Observable<any> {
+    // Этот метод вызывает эндпоинт /auth/admin-data, который возвращает данные только для админов.
+    return this.http.get(`${this.baseUrl}/admin-data`);
+  }
+  
+  logout(): void {
+    localStorage.removeItem('access_token');
+  }
 }
