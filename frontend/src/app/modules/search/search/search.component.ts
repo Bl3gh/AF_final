@@ -37,43 +37,50 @@ export class SearchComponent implements OnInit {
     distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
     switchMap(formValue => {
       const { keyword, category, author } = formValue;
-      // Если все поля пустые, возвращаем пустой массив
+      
+      // Проверяем, что хотя бы одно поле заполнено
       if (!keyword.trim() && !category.trim() && !author.trim()) {
         return of([]);
       }
+
+      // Также добавляем проверку для поля keyword
+      if (keyword && keyword.trim() === '') {
+        return of([]);
+      }
+
       return this.bookService.searchBooks(keyword, category, author);
     })
   )
   .subscribe(results => {
     const formValue = this.searchForm.value;
-    const selectedGenre = formValue.category; // выбранный жанр
+    const selectedGenre = formValue.category ? formValue.category.trim().toLowerCase() : '';
     const authorFilter = formValue.author ? formValue.author.trim().toLowerCase() : '';
+    const keywordFilter = formValue.keyword ? formValue.keyword.trim().toLowerCase() : '';
 
-    // Фильтруем результаты по жанру и автору
     this.searchResults = results.filter(book => {
       let matchesGenre = true;
       let matchesAuthor = true;
+      let matchesKeyword = true;
 
-      // Фильтрация по жанрам, если жанр выбран
-      if (selectedGenre && selectedGenre.trim() !== '') {
-        matchesGenre =
-          book.genres &&
-          book.genres.some((g: string) => g.toLowerCase() === selectedGenre.toLowerCase());
+      if (selectedGenre) {
+        matchesGenre = book.genres && book.genres.some((g: string) => g.toLowerCase() === selectedGenre);
       }
 
-      // Фильтрация по авторам, если поле автора заполнено
       if (authorFilter) {
-        // Здесь предполагаем, что book.authors — строка, содержащая имя автора или список авторов
-        matchesAuthor =
-          book.authors &&
-          book.authors.toLowerCase().includes(authorFilter);
+        matchesAuthor = book.authors && book.authors.toLowerCase().includes(authorFilter);
       }
 
-      return matchesGenre && matchesAuthor;
+      if (keywordFilter) {
+        matchesKeyword = book.title.toLowerCase().includes(keywordFilter) || 
+                         book.description.toLowerCase().includes(keywordFilter);
+      }
+
+      return matchesGenre && matchesAuthor && matchesKeyword;
     });
 
     console.log('Результаты поиска после фильтрации:', this.searchResults);
   });
+
   }
   
 

@@ -43,43 +43,50 @@ export class StatisticsComponent implements OnInit {
   }
 
   // Линейная диаграмма: динамика добавления книг по месяцам
-  buildLineChart(): void {
+  buildLineChart(data?: MonthData[]): void {
     const element = this.lineChartContainer.nativeElement;
     d3.select(element).selectAll('*').remove();
   
     const rawData = this.statsData.books_by_month;
-    if (!rawData || rawData.length === 0) { return; }
-  
-    // Парсинг данных
     const parseTime = d3.timeParse("%Y-%m");
-    const data: MonthData[] = rawData.map((d: any) => ({
-      month: parseTime(d.month) as Date,
-      count: +d.count
-    }));
+  
+    // Проверяем, есть ли переданные данные
+    let chartData: MonthData[];
+    if (data) {
+      chartData = data;
+    } else if (!rawData || rawData.length < 2) {
+      // Если данных мало, добавляем временные данные
+      chartData = [
+        { month: parseTime('2025-01')!, count: 0 },
+        { month: parseTime('2025-02')!, count: rawData?.[0]?.count || 0 }
+      ];
+    } else {
+      // Преобразуем данные из rawData
+      chartData = rawData.map((d: any) => ({
+        month: parseTime(d.month) as Date,
+        count: +d.count
+      }));
+    }
   
     const margin = { top: 20, right: 20, bottom: 50, left: 50 };
     const width = element.offsetWidth - margin.left - margin.right;
     const height = 300 - margin.top - margin.bottom;
   
-    // Создаём SVG с контейнером для зума
     const svg = d3.select(element)
       .append('svg')
       .attr('width', width + margin.left + margin.right)
       .attr('height', height + margin.top + margin.bottom)
-      .call(zoom) // подключаем зум
       .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`);
   
-    // Масштаб по оси X и Y
     const x = d3.scaleTime()
       .range([0, width])
-      .domain(d3.extent(data, (d: MonthData) => d.month) as [Date, Date]);
+      .domain(d3.extent(chartData, (d: MonthData) => d.month) as [Date, Date]);
   
     const y = d3.scaleLinear()
       .range([height, 0])
-      .domain([0, d3.max(data, (d: MonthData) => d.count)!]);
+      .domain([0, d3.max(chartData, (d: MonthData) => d.count)!]);
   
-    // Создаем оси
     const xAxis = svg.append("g")
       .attr("transform", `translate(0,${height})`)
       .call(d3.axisBottom(x).ticks(5));
@@ -87,19 +94,17 @@ export class StatisticsComponent implements OnInit {
     const yAxis = svg.append("g")
       .call(d3.axisLeft(y));
   
-    // Линия с переходом
     const lineGenerator = d3.line<MonthData>()
       .x((d: MonthData) => x(d.month))
       .y((d: MonthData) => y(d.count));
   
     const path = svg.append("path")
-      .datum(data)
+      .datum(chartData)
       .attr("fill", "none")
       .attr("stroke", "#3f51b5")
       .attr("stroke-width", 2)
       .attr("d", lineGenerator);
   
-    // Добавляем анимацию рисования линии
     const totalLength = (path.node() as SVGPathElement).getTotalLength();
     path
       .attr("stroke-dasharray", totalLength + " " + totalLength)
@@ -109,24 +114,20 @@ export class StatisticsComponent implements OnInit {
       .ease(d3.easeLinear)
       .attr("stroke-dashoffset", 0);
   
-    // Функция зума
-    function zoom(svgSelection: any) {
-      const zoomBehavior = d3.zoom()
-        .scaleExtent([1, 10])
-        .translateExtent([[0, 0], [width, height]])
-        .on("zoom", zoomed);
-      svgSelection.call(zoomBehavior);
-      
-      function zoomed({transform}: any) {
-        // Обновляем оси
-        xAxis.call(d3.axisBottom(x.copy().range([0, width]).domain(transform.rescaleX(x).domain())));
-        yAxis.call(d3.axisLeft(y.copy().range([height, 0]).domain(transform.rescaleY(y).domain())));
-        
-        // Обновляем линию с учетом трансформации
-        path.attr("transform", transform);
-      }
+    const zoomBehavior = d3.zoom()
+      .scaleExtent([1, 10])
+      .translateExtent([[0, 0], [width, height]])
+      .on('zoom', zoomed);
+  
+      d3.select<SVGSVGElement, unknown>(element).select('svg').call(zoomBehavior as any);
+    function zoomed(event: any) {
+      const { transform } = event;
+      xAxis.call(d3.axisBottom(x).scale(transform.rescaleX(x)));
+      yAxis.call(d3.axisLeft(y).scale(transform.rescaleY(y)));
+      path.attr('transform', transform);
     }
   }
+  
   
 
   // Круговая диаграмма: распределение книг по жанрам
